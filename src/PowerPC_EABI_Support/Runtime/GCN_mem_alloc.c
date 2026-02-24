@@ -36,6 +36,5 @@ DECL_WEAK void __sys_free(void *block) {
     if (__OSCurrHeap == -1) {
         InitDefaultHeap();
     }
-
     OSFreeToHeap(__OSCurrHeap, block);
 }

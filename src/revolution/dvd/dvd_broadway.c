@@ -488,8 +488,7 @@ BOOL DVDLowOpenPartition(u32 offset, ESTicket* eTicket, u32 certsSize,
                              ioVec, doTransactionCallback, ctx);
 
     if (result != IPC_RESULT_OK) {
-        OSReport("@@@ (DVDLowOpenPartition) IOS_IoctlvAsync returned error: %d\n",
-                result);
+        OSReport("@@@ (DVDLowOpenPartition) IOS_IoctlvAsync returned error: %d\n", result);
         ctx->inUse = FALSE;
 
         return FALSE;
@@ -573,7 +572,10 @@ BOOL DVDLowOpenPartitionWithTmdAndTicket(u32 offset, ESTicket *eTicket, u32 numT
     return TRUE;
 }
 
-BOOL DVDLowOpenPartitionWithTmdAndTicketView(u32 offset, ESTicketView *eTicketView, u32 numTmdBytes, ESTitleMeta *tmd, u32 numCertBytes, void* certificates, DVDLowCallback callback) {
+BOOL DVDLowOpenPartitionWithTmdAndTicketView(
+    u32 offset, ESTicketView *eTicketView, u32 numTmdBytes, ESTitleMeta *tmd,
+    u32 numCertBytes, void* certificates, DVDLowCallback callback
+) {
     DVDLowContext* ctx;
     IPCResult result;
     
@@ -694,16 +696,27 @@ BOOL DVDLowGetNoDiscBufferSizes(u32 offset, u32* numTmdBytes, u32* numCertBytes,
     return TRUE;
 }
 
-BOOL DVDLowGetNoDiscOpenPartitionParams(u32 offset, ESTicket* eTicket, u32* numTmdBytes, ESTitleMeta* tmd, u32* numCertBytes, u8* certificates, u32* dataWordOffset, u8* h3HashPtr, DVDLowCallback callback) {
+BOOL DVDLowGetNoDiscOpenPartitionParams(
+    u32 offset, ESTicket* eTicket, u32* numTmdBytes, ESTitleMeta* tmd, u32* numCertBytes,
+    u8* certificates, u32* dataWordOffset, u8* h3HashPtr, DVDLowCallback callback
+) {
     DVDLowContext* ctx;
     IPCResult result;
 
-    if (eTicket == 0 || numTmdBytes == 0 || tmd == 0 || numCertBytes == 0 || certificates == 0 || dataWordOffset == 0 || h3HashPtr == 0) {
+    if (
+        eTicket == 0 || numTmdBytes == 0 || tmd == 0 || numCertBytes == 0 ||
+        certificates == 0 || dataWordOffset == 0 || h3HashPtr == 0
+    ) {
         OSReport("(%s) Error: NULL pointer argument\n", __FUNCTION__);
         return FALSE;
     }
 
-    if (!CHECK_ALIGN_32(eTicket) || !CHECK_ALIGN_32(numTmdBytes) || !CHECK_ALIGN_32(tmd) || !CHECK_ALIGN_32(numCertBytes) || !CHECK_ALIGN_32(certificates) || !CHECK_ALIGN_32(dataWordOffset) || !CHECK_ALIGN_32(h3HashPtr)) {
+    if (
+        !CHECK_ALIGN_32(eTicket) || !CHECK_ALIGN_32(numTmdBytes) ||
+        !CHECK_ALIGN_32(tmd) || !CHECK_ALIGN_32(numCertBytes) ||
+        !CHECK_ALIGN_32(certificates) || !CHECK_ALIGN_32(dataWordOffset) ||
+        !CHECK_ALIGN_32(h3HashPtr)
+    ) {
         OSReport("(%s) pointer argument is unaligned\n", __FUNCTION__);
         return FALSE;
     }

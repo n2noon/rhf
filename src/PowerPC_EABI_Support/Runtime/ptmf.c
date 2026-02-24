@@ -1,9 +1,9 @@
 #include <Runtime/ptmf.h>
 
 __ptmf const __ptmf_null = {
-    0,
-    0,
-    0,
+    /* this_delta = */  0,
+    /* v_offset = */    0,
+    /* ve_offset = */   0,
 };
 
 asm long __ptmf_test(register __ptmf* ptmf) {
@@ -56,12 +56,12 @@ asm void __ptmf_scall(...) {
     lwz r12, 8(r12)
     add r3, r3, r0
     cmpwi r11, 0
-    blt lbl_803620A4
+    blt @exit
 
     lwzx r12, r3, r12
     lwzx r12, r12, r11
 
-lbl_803620A4:
+@exit:
     mtctr r12
     bctr
     // clang-format on
