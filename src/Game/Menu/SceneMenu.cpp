@@ -117,8 +117,8 @@ void CSceneMenu::_28(void) {
     CController *controller = gControllerManager->fn_801D5FF0(0);
     CGCController *gcController = gControllerManager->fn_801D6000(0);
 
-    // TODO: regswap in unkInputCheck
-    if ((controller->getUnk1340() & 0x800) || (gcController->unkInputCheck(0x100))) {
+    // TODO: regswap in checkButtonDown
+    if (controller->checkRelease(WPAD_BUTTON_A) || gcController->checkButtonDown(PAD_BUTTON_A)) {
         const TickFlowCode *tickFlowCode = lbl_801F8460[lbl_80320143].tickFlowCode;
         if (tickFlowCode != NULL) {
             if (tickFlowCode == lbl_80320FE0) {
@@ -167,39 +167,40 @@ void CSceneMenu::_28(void) {
         gGameManager->_20(lbl_801F8460[lbl_80320143].sceneCreateFn, eHeapGroup_Scene);
         return;
     }
-    if (((controller->getUnk133C() & 8) || (controller->getUnk1368() & 8)) 
-    || ((gcController->unkInputCheck(8) || (gcController->getUnk14() & 8)))) {
-        fn_800077A8((lbl_80320143 + ARRAY_LENGTH(lbl_801F8460) - 1) % ARRAY_LENGTH(lbl_801F8460));
+
+    if ((controller->checkTrig(WPAD_BUTTON_UP) || controller->checkUnk1368(WPAD_BUTTON_UP)) 
+    || ((gcController->checkButtonDown(PAD_BUTTON_UP) || gcController->checkButtonHeld(PAD_BUTTON_UP)))) {
+        fn_800077A8((lbl_80320143 + (s32)ARRAY_LENGTH(lbl_801F8460) - 1) % (s32)ARRAY_LENGTH(lbl_801F8460));
         return;
     }
-    if (((controller->getUnk133C() & 4) || (controller->getUnk1368() & 4)) 
-    || ((gcController->unkInputCheck(4) || (gcController->getUnk14() & 4)))) {
-        fn_800077A8((lbl_80320143 + 1) % ARRAY_LENGTH(lbl_801F8460));
+    if ((controller->checkTrig(WPAD_BUTTON_DOWN) || controller->checkUnk1368(WPAD_BUTTON_DOWN)) 
+    || ((gcController->checkButtonDown(PAD_BUTTON_DOWN) || gcController->checkButtonHeld(PAD_BUTTON_DOWN)))) {
+        fn_800077A8((lbl_80320143 + 1) % (s32)ARRAY_LENGTH(lbl_801F8460));
         return;
     }
-    if (((controller->getUnk133C() & 1) || (controller->getUnk1368() & 1)) 
-    || ((gcController->unkInputCheck(1) || (gcController->getUnk14() & 1)))) {
+    if ((controller->checkTrig(WPAD_BUTTON_LEFT) || controller->checkUnk1368(WPAD_BUTTON_LEFT)) 
+    || ((gcController->checkButtonDown(PAD_BUTTON_LEFT) || gcController->checkButtonHeld(PAD_BUTTON_LEFT)))) {
         if ((lbl_80320143 - 20) >= 0) {
             fn_800077A8(lbl_80320143 - 20);
             return;
         }
-        if (((lbl_80320143 % 20) + 100) >= ARRAY_LENGTH(lbl_801F8460)) {
-            fn_800077A8(ARRAY_LENGTH(lbl_801F8460) - 1);
+        if (((lbl_80320143 % 20) + 100) >= (s32)ARRAY_LENGTH(lbl_801F8460)) {
+            fn_800077A8((s32)ARRAY_LENGTH(lbl_801F8460) - 1);
             return;
         }
         fn_800077A8((lbl_80320143 % 20) + 100);
         return;
     }
-    if (((controller->getUnk133C() & 2) || (controller->getUnk1368() & 2)) 
-    || ((gcController->unkInputCheck(2) || (gcController->getUnk14() & 2)))) {
-        if ((lbl_80320143 + 20) < ARRAY_LENGTH(lbl_801F8460)) {
+    if ((controller->checkTrig(WPAD_BUTTON_RIGHT) || controller->checkUnk1368(WPAD_BUTTON_RIGHT)) 
+    || ((gcController->checkButtonDown(PAD_BUTTON_RIGHT) || gcController->checkButtonHeld(PAD_BUTTON_RIGHT)))) {
+        if ((lbl_80320143 + 20) < (s32)ARRAY_LENGTH(lbl_801F8460)) {
             fn_800077A8(lbl_80320143 + 20);
             return;
         }
         s32 temp = ((lbl_80320143) / 20);
         s32 temp1 = ((lbl_80320143) % 20);
         if (temp < 5) {
-            fn_800077A8(ARRAY_LENGTH(lbl_801F8460) - 1);
+            fn_800077A8((s32)ARRAY_LENGTH(lbl_801F8460) - 1);
             return;
         }
         fn_800077A8(temp1);

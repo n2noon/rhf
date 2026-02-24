@@ -76,7 +76,7 @@ bool CTickFlow::fn_801DD9E8(void) {
         if (isPressedOrReleased) {
             CController *controller = gControllerManager->fn_801D5FF0(mButtonPromptControllerIdx);
             if (mButtonPromptIsReleased) {
-                if (mButtonPromptButton & controller->getUnk133C()) {
+                if (mButtonPromptButton & controller->getTrig()) {
                     mButtonPromptIsReleased = false;
                     mButtonPromptIsPressed = true;
                     if (mButtonPromptPressSfx >= 0) {
@@ -84,7 +84,7 @@ bool CTickFlow::fn_801DD9E8(void) {
                     }
                 }
             }
-            else if (mButtonPromptIsPressed && (mButtonPromptButton & controller->getUnk1340())) {
+            else if (mButtonPromptIsPressed && (mButtonPromptButton & controller->getRelease())) {
                 mButtonPromptIsPressed = false;
                 if (mButtonPromptReleaseSfx >= 0) {
                     gSoundManager->play(mButtonPromptReleaseSfx);

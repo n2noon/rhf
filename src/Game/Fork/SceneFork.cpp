@@ -102,8 +102,8 @@ void CSceneFork::_14(void) {
 
     gTickFlowManager->registerFlow<Fork::CMyFlow>();
 
-    gControllerManager->fn_801D5FF0(0)->fn_801D5500((1 << 11), 2);
-    gControllerManager->fn_801D5FF0(1)->fn_801D5500((1 << 11), 2);
+    gControllerManager->fn_801D5FF0(0)->fn_801D5500(WPAD_BUTTON_A, 2);
+    gControllerManager->fn_801D5FF0(1)->fn_801D5500(WPAD_BUTTON_A, 2);
 
     void *fork_brcadAddr = gFileManager->fn_801D4270(19, "./fork.brcad");
 

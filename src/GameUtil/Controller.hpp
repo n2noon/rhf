@@ -7,9 +7,9 @@
 #include <revolution/PAD.h>
 #include <revolution/KPAD.h>
 
-#include <nw4r/ut.h>
-
 #include "Singleton.hpp"
+
+#include "CriticalSection.hpp"
 
 #include "Layout.hpp"
 
@@ -52,7 +52,7 @@ public:
     virtual bool _3C(void) {
         return (_20() == WPAD_ERR_OK) && (_18() == WPAD_DEV_UNKNOWN);
     }
-    virtual void _40(const char *, bool);
+    virtual void _40(const char *seqText, bool forcePlay);
     virtual void _44(void);
     virtual bool _48(void) { return mMotorSeqPlaying; }
     virtual void _4C(void);
@@ -64,34 +64,38 @@ public:
     void fn_801D4F74(u32);
     void fn_801D4FD8(void);
     void fn_801D5170(bool);
-    Vec2 fn_801D51E4(f32, f32);
-    Vec2 fn_801D523C(CLayout *);
+    Vec2 fn_801D51E4(f32 width, f32 height);
+    Vec2 fn_801D523C(CLayout *layout);
     bool fn_801D52D4(void);
     bool fn_801D5340(void);
     f32 fn_801D547C(void);
-    void fn_801D5500(u32, u8);
-    void fn_801D55D8(u32, u8);
+    void fn_801D5500(u32 button, u8 frames);
+    void fn_801D55D8(u32 button, u8 frames);
     bool fn_801D5850(void);
     bool fn_801D58A0(void);
     s32 fn_801D58A8(void);
 
-    void do801D4EA4(u32 arg0) {
-        u32 temp = mCoreStatus[0].hold;
+    void do801D4EA4(u32 prevHold) {
+        u32 hold = mCoreStatus[0].hold;
         if (!_24()) {
-            temp = 0;
+            hold = 0;
         }
-        fn_801D4EA4(temp, arg0);
+        fn_801D4EA4(hold, prevHold);
     }
 
-    u32 getUnk133C(void) {
-        return unk133C;
+    u32 getHold(void) {
+        return mButtonHold;
     }
-    u32 getUnk1340(void) {
-        return unk1340;
+    u32 getTrig(void) {
+        return mButtonTrig;
+    }
+    u32 getRelease(void) {
+        return mButtonRelease;
     }
     u32 getUnk1368(void) {
         return unk1368;
     }
+
     bool unk136CCheck(void) {
         return unk136C && !unk136D;
     }
@@ -99,19 +103,34 @@ public:
         return !unk136C && unk136D;
     }
 
-    u32 getUnk1338(void) {
-        return unk1338;
+    bool checkHold(u32 button) {
+        return mButtonHold & button;
+    }
+    bool checkTrig(u32 button) {
+        return mButtonTrig & button;
+    }
+    bool checkRelease(u32 button) {
+        return mButtonRelease & button;
+    }
+    bool checkUnk1368(u32 button) {
+        return unk1368 & button;
     }
 
-    Vec2 getCorePos(void) { return mCoreStatus[0].pos; }
-    u32 getCoreTrig(void) { return mCoreStatus[0].trig; }
+    Vec2 getCorePos(void) const { return mCoreStatus[0].pos; }
+    u32 getCoreHold(void) const { return mCoreStatus[0].hold; }
+    u32 getCoreTrig(void) const { return mCoreStatus[0].trig; }
+    u32 getCoreRelease(void) const { return mCoreStatus[0].release; }
+
+private:
+    static void fn_801D5830(s32 channel, s32 result); // WPADCallback
 
 private:
     enum { MOTOR_SEQ_OFF = 0, MOTOR_SEQ_ON = 1, MOTOR_SEQ_END = 0xFF };
     enum { MOTOR_SEQ_MAXLEN = 32 };
 
-    static void fn_801D5830(s32, s32); // WPADCallback
+    enum { BUTTON_COUNT = 16 };
 
+private:
     s32 mMyChannel;
     s32 mKPADReadLength;
     s32 mProbeType;
@@ -121,22 +140,26 @@ private:
     u8 pad858[0xf18 - 0x858];
     KPADUnifiedWpadStatus mUnifiedStatus[KPAD_MAX_SAMPLES];
     u8 pad1298[0x1338 - 0x1298];
-    u32 unk1338;
-    u32 unk133C;
-    u32 unk1340;
-    u8 unk1344[0x10];
-    u8 unk1354[0x10];
+    u32 mButtonHold;
+    u32 mButtonTrig;
+    u32 mButtonRelease;
+
+    u8 mButtonCoolTimer[BUTTON_COUNT];
+    u8 mButtonCoolFrames[BUTTON_COUNT];
+
     u8 unk1364;
     u8 unk1365;
-    u8 unk1366;
+    u8 mHeldTimer;
     u32 unk1368;
     bool unk136C;
     bool unk136D;
     u32 unk1370;
     u8 unk1374;
+
     bool mMotorSeqPlaying;
     u8 mMotorSeqPos;
     u8 mMotorSeq[MOTOR_SEQ_MAXLEN + 1];
+
     bool mInfoUpdated;
     s32 mInfoErrcode;
     WPADInfo mInfo;
@@ -171,25 +194,26 @@ public:
         unk11 = 4;
     }
 
-    void setUnk08(PADStatus *arg0) {
-        mStatus = arg0;
-    }
-    PADStatus *getUnk08(void) {
-        return mStatus;
-    }
-    void setUnk0C(PADStatus *arg0) {
-        mStatusPrev = arg0;
-    }
-    PADStatus *getUnk0C(void) {
-        return mStatusPrev;
-    }
+    s32 getError(void) { return mStatus->err; }
+
+    void setStatus(PADStatus *status) { mStatus = status; }
+    PADStatus *getStatus(void) const { return mStatus; }
+
+    void setStatusPrev(PADStatus *statusPrev) { mStatusPrev = statusPrev; }
+    PADStatus *getStatusPrev(void) const { return mStatusPrev; }
+
     u32 getUnk14(void) {
         return unk14;
     }
-    bool unkInputCheck(u32 mask) {
+
+    bool checkButtonHeld(u32 button) {
+        return (unk14 & button);
+    }
+
+    bool checkButtonDown(u32 button) {
         return
-            (mStatus->err == PAD_ERR_NONE) && 
-            (PADButtonDown(mStatusPrev->button, mStatus->button) & mask);
+            (mStatus->err == PAD_ERR_NONE) &&
+            (PADButtonDown(mStatusPrev->button, mStatus->button) & button);
     }
 
 private:
@@ -198,7 +222,7 @@ private:
     PADStatus *mStatusPrev;
     u8 unk10;
     u8 unk11;
-    u8 unk12;
+    u8 mHeldTimer;
     u32 unk14;
 };
 
@@ -217,31 +241,30 @@ public:
     CGCController *fn_801D6000(s32 channel);
 
     void *doAlloc(u32 size) {
-        // TODO: doesn't match when using AutoInterruptLock..
-        BOOL inter = OSDisableInterrupts();
+        // TODO: doesn't match when using CriticalSection
+        BOOL prevInterrupts = OSDisableInterrupts();
         void *alloc = MEMAllocFromAllocator(&mAllocator, size);
-        OSRestoreInterrupts(inter);
+        OSRestoreInterrupts(prevInterrupts);
         return alloc;
     }
 
     BOOL doFree(void *block) {
-        nw4r::ut::AutoInterruptLock lock;
+        CriticalSection criticalSection;
         MEMFreeToAllocator(&mAllocator, block);
         return TRUE;
     }
 
 private:
-    CController *mController[4];
+    CController *mController[WPAD_MAX_CONTROLLERS];
     CNullController *mNullController;
 
     MEMiHeapHead *mHeap;
     MEMAllocator mAllocator;
     u8 *mHeapStart;
 
-    CGCController *mGCController[4];
-
-    PADStatus mPadStatus[4];
-    PADStatus mPadStatusPrev[4];
+    CGCController *mGCController[PAD_MAX_CONTROLLERS];
+    PADStatus mPadStatus[PAD_MAX_CONTROLLERS];
+    PADStatus mPadStatusPrev[PAD_MAX_CONTROLLERS];
 
     static void *fn_801D5950(u32 size);
     static BOOL fn_801D59B0(void *block);

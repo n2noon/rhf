@@ -354,11 +354,11 @@ void CExScene::_20(void) {
 
     gHBMManager->_20();
 
-    gControllerManager->fn_801D5FF0(0)->fn_801D5500(0x800, 6);
-    gControllerManager->fn_801D5FF0(0)->fn_801D5500(0x400, 6);
+    gControllerManager->fn_801D5FF0(0)->fn_801D5500(WPAD_BUTTON_A, 6);
+    gControllerManager->fn_801D5FF0(0)->fn_801D5500(WPAD_BUTTON_B, 6);
 
-    gControllerManager->fn_801D5FF0(1)->fn_801D5500(0x800, 6);
-    gControllerManager->fn_801D5FF0(1)->fn_801D5500(0x400, 6);
+    gControllerManager->fn_801D5FF0(1)->fn_801D5500(WPAD_BUTTON_A, 6);
+    gControllerManager->fn_801D5FF0(1)->fn_801D5500(WPAD_BUTTON_B, 6);
 
     if (lbl_80320228) {
         fn_8000A564(false, true);
@@ -1037,7 +1037,7 @@ void CExScene::fn_8000A378(void) {
 
         lbl_803201D8->setPosX(lbl_8032A240.getCurrent());
 
-        if (gControllerManager->fn_801D5FF0(0)->getUnk133C() & WPAD_BUTTON_1) {
+        if (gControllerManager->fn_801D5FF0(0)->checkTrig(WPAD_BUTTON_1)) {
             fn_8000A564(false, false);
 
             lbl_803201D4->setEnabled(true);
@@ -1048,7 +1048,7 @@ void CExScene::fn_8000A378(void) {
         }
     }
     else {
-        if (gControllerManager->fn_801D5FF0(0)->getUnk133C() & WPAD_BUTTON_1) {
+        if (gControllerManager->fn_801D5FF0(0)->checkTrig(WPAD_BUTTON_1)) {
             if (fn_8000A6E0() && lbl_803201D4->getEnabled()) {
                 lbl_80320210->fn_801DD0AC(permanent_frame_inst);
                 lbl_80320210->setScale(1.0f, 1.0f);

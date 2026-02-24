@@ -33,10 +33,10 @@ void CInputCheckManager::fn_801E8118(void) {
         CController *controller = gControllerManager->fn_801D5FF0(i);
         
         for (int j = 0; j < 11; j++) {
-            if (controller->getUnk133C() & lbl_802E4FE0[j]) {
+            if (controller->getTrig() & lbl_802E4FE0[j]) {
                 gInputCheckManager->fn_801E923C(lbl_802E500C[j] + i1C);
             }
-            else if (controller->getUnk1340() & lbl_802E4FE0[j]) {
+            else if (controller->getRelease() & lbl_802E4FE0[j]) {
                 gInputCheckManager->fn_801E923C(lbl_802E5038[j] + i1C);
             }
         }
@@ -55,7 +55,7 @@ void CInputCheckManager::fn_801E8118(void) {
                 }
             }
             else {
-                if ((controller->getUnk133C() & WPAD_BUTTON_A) != 0) {
+                if ((controller->getTrig() & WPAD_BUTTON_A) != 0) {
                     if (gInputCheckManager->getUnk498() || 
                         gInputCheckManager->fn_801E93E0(tempUnk4A4, -12.0f, 12.0f)) {
                         lbl_803D5D78[i + 0] = 3;
@@ -73,7 +73,7 @@ void CInputCheckManager::fn_801E8118(void) {
                 }
             }
             else {
-                if ((controller->getUnk133C() & WPAD_BUTTON_B) != 0) {
+                if ((controller->getTrig() & WPAD_BUTTON_B) != 0) {
                     if (
                         gInputCheckManager->getUnk499() || 
                         gInputCheckManager->fn_801E93E0(tempUnk4A4, -12.0f, 12.0f)
@@ -101,7 +101,7 @@ void CInputCheckManager::fn_801E8118(void) {
                 }
             }
             else {
-                if ((controller->getUnk1340() & WPAD_BUTTON_A) != 0) {
+                if ((controller->getRelease() & WPAD_BUTTON_A) != 0) {
                     if (
                         gInputCheckManager->getUnk49A() || 
                         gInputCheckManager->fn_801E93E0(tempUnk4A4, -12.0f, 12.0f)
@@ -121,7 +121,7 @@ void CInputCheckManager::fn_801E8118(void) {
                 }
             }
             else {
-                if ((controller->getUnk1340() & WPAD_BUTTON_B) != 0) {
+                if ((controller->getRelease() & WPAD_BUTTON_B) != 0) {
                     if (gInputCheckManager->getUnk49B() || 
                         gInputCheckManager->fn_801E93E0(tempUnk4A4, -12.0f, 12.0f)) {
                         lbl_803D5D78[i + 12] = 3;

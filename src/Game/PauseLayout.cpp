@@ -135,10 +135,10 @@ void CPauseLayout::_18(nw4r::lyt::DrawInfo *drawInfo) {
                     WPAD_BUTTON_HOME;
                 u32 maskP2 = maskP1 | WPAD_BUTTON_PLUS;
                 if (
-                    !(inTwoPlay && ((controllerP1->getUnk1338() & maskP1) || (controllerP2->getUnk1338() & maskP2))) &&
-                    (inTwoPlay || !(controllerP1->getUnk1338() & maskP1))
+                    !(inTwoPlay && (controllerP1->checkHold(maskP1) || controllerP2->checkHold(maskP2))) &&
+                    (inTwoPlay || !controllerP1->checkHold(maskP1))
                 ) {
-                    if ((mUnk28 <= 0) && ((controllerP1->getUnk133C() & WPAD_BUTTON_PLUS) || lbl_80320300)) {
+                    if ((mUnk28 <= 0) && (controllerP1->checkTrig(WPAD_BUTTON_PLUS) || lbl_80320300)) {
                         if (lbl_80320300) {
                             mUnk20 = 1;
                         }
@@ -157,7 +157,7 @@ void CPauseLayout::_18(nw4r::lyt::DrawInfo *drawInfo) {
                         gInputCheckManager->setGamePaused(true);
                         gSoundManager->fn_801E6F98(true);
 
-                        if (controllerP1->getUnk133C() & WPAD_BUTTON_PLUS) {
+                        if (controllerP1->checkTrig(WPAD_BUTTON_PLUS)) {
                             gSoundManager->play(SE_PAUSE_ON);
                         }
                     }

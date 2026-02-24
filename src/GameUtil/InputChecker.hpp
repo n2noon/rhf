@@ -62,7 +62,7 @@ public:
         return unk78;
     }
 
-private:
+protected:
     u32 unk0C[8];
     u8 unk2C;
     u32 unk30[8];

@@ -61,7 +61,7 @@ void CSceneLogo::_28(void) {
     CController *controller = gControllerManager->fn_801D5FF0(0);
 
     mTimer++;
-    if ((mTimer >= 120) && (controller->getUnk133C() & 0x800)) {
+    if ((mTimer >= 120) && controller->checkTrig(WPAD_BUTTON_A)) {
         gTickFlowManager->fn_801E1E4C();
         gTickFlowManager->fn_801E1CC0(lbl_80256044);
     }

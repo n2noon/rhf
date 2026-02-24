@@ -22,23 +22,25 @@ CController::CController(s32 channel) {
     unk136C = false;
     unk1370 = 0;
     mMotorSeqPlaying = 0;
-    unk1338 = 0;
-    unk133C = 0;
-    unk1340 = 0;
-    for (s32 i = 0; i < (s32)ARRAY_LENGTH(unk1344); i++) {
-        unk1344[i] = 0;
+    mButtonHold = 0;
+    mButtonTrig = 0;
+    mButtonRelease = 0;
+    for (s32 i = 0; i < BUTTON_COUNT; i++) {
+        mButtonCoolTimer[i] = 0;
     }
     unk1364 = 10;
     unk1365 = 4;
-    for (s32 i = 0; i < (s32)ARRAY_LENGTH(unk1354); i++) {
-        if (((1 << i) & 0xFFFF) != 0) {
-            unk1354[i] = 0;
+    for (s32 i = 0; i < BUTTON_COUNT; i++) {
+        u16 bit = 1 << i;
+        if (bit != 0) {
+            mButtonCoolFrames[i] = 0;
         }
     }
 
-    for (s32 i = 0; i < (s32)ARRAY_LENGTH(unk1354); i++) {
-        if (((1 << i) & ((1 << 10) | (1 << 11))) != 0) {
-            unk1354[i] = 6;
+    for (s32 i = 0; i < BUTTON_COUNT; i++) {
+        u16 bit = 1 << i;
+        if ((bit & (WPAD_BUTTON_A | WPAD_BUTTON_B)) != 0) {
+            mButtonCoolFrames[i] = 6;
         }
     }
 }
@@ -48,11 +50,11 @@ void CController::_0C(void) {
 }
 
 void CController::_10(void) {
-    u32 temp_r30 = unk1338;
+    u32 prevHold = mButtonHold;
     fn_801D4DDC();
-    fn_801D4E38(temp_r30);
+    fn_801D4E38(prevHold);
     unk1368 = 0;
-    fn_801D4F74(temp_r30);
+    fn_801D4F74(prevHold);
     fn_801D4FD8();
 
     KPADSetPosParam(mMyChannel, .05f, .8f);
@@ -71,78 +73,78 @@ void CController::fn_801D4DDC(void) {
     KPADGetUnifiedWpadStatus(mMyChannel, mUnifiedStatus, mKPADReadLength);
 }
 
-void CController::fn_801D4E38(u32 arg1) {
-    do801D4EA4(arg1);
+void CController::fn_801D4E38(u32 prevHold) {
+    do801D4EA4(prevHold);
 }
 
-void CController::fn_801D4EA4(u32 arg1, u32 arg2) {
-    u32 xorinput = arg2 ^ arg1;
-    unk1338 = 0;
-    unk133C = 0;
-    unk1340 = 0;
-    u32 xorarg1 = xorinput & arg1;
-    u32 xorarg2 = xorinput & arg2;
+void CController::fn_801D4EA4(u32 hold, u32 prevHold) {
+    u32 trigRelease = prevHold ^ hold;
+    u32 trig = trigRelease & hold;
+    u32 release = trigRelease & prevHold;
 
-    for (s32 i = 0; i < (s32)ARRAY_LENGTH(unk1344); i++) {
-        u32 temp_r12 = 1 << i;
-        if (unk1344[i]) {
+    mButtonHold = 0;
+    mButtonTrig = 0;
+    mButtonRelease = 0;
+
+    for (s32 i = 0; i < BUTTON_COUNT; i++) {
+        u32 bit = 1 << i;
+        if (mButtonCoolTimer[i] != 0) {
             if (gTickFlowManager->getPaused()) {
                 continue;
             }
-            unk1344[i]--;
-            if ((unk1344[i] == 0) && (arg1 & temp_r12)) {
-                unk1344[i] = 1;
+            mButtonCoolTimer[i]--;
+            if ((mButtonCoolTimer[i] == 0) && (hold & bit)) {
+                mButtonCoolTimer[i] = 1;
             }
         }
         else {
-            if (arg1 & temp_r12) {
-                unk1338 |= temp_r12;
+            if (hold & bit) {
+                mButtonHold |= bit;
             }
-            if (xorarg1 & temp_r12) {
-                unk133C |= temp_r12;
+            if (trig & bit) {
+                mButtonTrig |= bit;
             }
-            if (xorarg2 & temp_r12) {
-                unk1340 |= temp_r12;
+            if (release & bit) {
+                mButtonRelease |= bit;
                 if (!gTickFlowManager->getPaused()) {
-                    unk1344[i] = unk1354[i];
+                    mButtonCoolTimer[i] = mButtonCoolFrames[i];
                 }
             }
         }
     }
 }
 
-void CController::fn_801D4F74(u32 arg1) {
+void CController::fn_801D4F74(u32 prevButtonHold) {
     unk1368 = 0;
-    if (unk133C) {
-        unk1366 = 0;
+    if (mButtonTrig != 0) {
+        mHeldTimer = 0;
     }
-    if (arg1 == unk1338) {
-        unk1366++;
-        if ((unk1366 == unk1364) || (unk1366 == (unk1364 + unk1365))) {
-            unk1368 = unk1338;
-            unk1366 = unk1364;
+    if (prevButtonHold == mButtonHold) {
+        mHeldTimer++;
+        if ((mHeldTimer == unk1364) || (mHeldTimer == (unk1364 + unk1365))) {
+            unk1368 = mButtonHold;
+            mHeldTimer = unk1364;
         }
     }
 }
 
 void CController::fn_801D4FD8(void) {
-    u32 temp;
     unk136D = unk136C;
+
     if (!unk136D) {
         if ((unk1370 - 1) > 1) { // TODO: maybe fake?
-            if (!unk1370) {
-                temp = unk133C;
-                if (((temp >> 11) & 1) && (temp & 0x400)) {
+            if (unk1370 == 0) {
+                // TODO: this is definitely an inline
+                u32 temp = mButtonTrig;
+                if ((((temp >> 11) & 1) != 0) && ((temp & WPAD_BUTTON_B) != 0)) {
                     unk1370 = 3;
                     unk136C = true;
-                    return;
                 }
-                if ((temp >> 11) & 1) {
+                else if (((temp >> 11) & 1) != 0) {
                     unk1370 = 1;
                     unk1374 = 0;
-                    return;
                 }
-                if (temp & 0x400) {
+                else if ((temp & WPAD_BUTTON_B) != 0) {
                     unk1370 = 2;
                     unk1374 = 0;
                 }
@@ -152,47 +154,44 @@ void CController::fn_801D4FD8(void) {
         unk1374++;
         if (unk1374 >= 4) {
             unk1370 = 0;
-            return;
         }
-        if (((unk133C & 0x800)) || ((unk133C & 0x400))) {
+        else if (((mButtonTrig & WPAD_BUTTON_A) != 0) || ((mButtonTrig & WPAD_BUTTON_B) != 0)) {
             unk1370 = 3;
             unk136C = true;
         }
         return;
     }
+
     if ((unk1370 - 1) > 1) { // TODO: maybe fake?
-        if ((s32)unk1370 != 3) {
-            return;
-        }
-        temp = unk1340;
-        if (((temp >> 11) & 1) && (temp & 0x400)) {
-            unk1370 = 0;
-            unk136C = false;
-            return;
-        }
-        if ((temp >> 11) & 1) {
-            unk1370 = 2;
-            unk1374 = 0;
-            return;
-        }
-        if (temp & 0x400) {
-            unk1370 = 1;
-            unk1374 = 0;
-        }
+        if ((s32)unk1370 == 3) {
+            // TODO: this is definitely an inline
+            u32 temp = mButtonRelease;
+            if ((((temp >> 11) & 1) != 0) && ((temp & WPAD_BUTTON_B) != 0)) {
+                unk1370 = 0;
+                unk136C = false;
+            }
+            else if (((temp >> 11) & 1) != 0) {
+                unk1370 = 2;
+                unk1374 = 0;
+            }
+            else if ((temp & WPAD_BUTTON_B) != 0) {
+                unk1370 = 1;
+                unk1374 = 0;
+            }
+        } 
         return;
     }
+
     unk1374++;
     if (unk1374 >= 4) {
         unk1370 = 0;
         unk136D = false;
         unk136C = false;
-        return;
     }
-    if (((unk1340 & 0x800)) || ((unk1340 & 0x400))) {
+    else if (((mButtonRelease & WPAD_BUTTON_A) != 0) || ((mButtonRelease & WPAD_BUTTON_B) != 0)) {
         unk1370 = 0;
         unk136C = false;
     }
-    return;
 }
 
 void CController::fn_801D5170(bool arg1) {
@@ -207,15 +206,15 @@ void CController::fn_801D5170(bool arg1) {
     }
 }
 
-Vec2 CController::fn_801D51E4(f32 arg1, f32 arg2) {
+Vec2 CController::fn_801D51E4(f32 width, f32 height) {
     return (Vec2) {
-        getCorePos().x * arg1 / 2.0f,
-        getCorePos().y * arg2 / 2.0f
+        getCorePos().x * width / 2.0f,
+        getCorePos().y * height / 2.0f
     };
 }
 
-Vec2 CController::fn_801D523C(CLayout *arg1) {
-    nw4r::ut::Rect rect = arg1->getLayout()->GetLayoutRect();
+Vec2 CController::fn_801D523C(CLayout *layout) {
+    nw4r::ut::Rect rect = layout->getLayout()->GetLayoutRect();
     return fn_801D51E4(rect.right - rect.left, rect.bottom - rect.top);
 }
 
@@ -260,7 +259,6 @@ bool CController::fn_801D5340(void) {
     return temp_r30;
 }
 
-
 f32 CController::fn_801D547C(void) {
     static Vec2 lbl_80320F90;
 
@@ -271,18 +269,18 @@ f32 CController::fn_801D547C(void) {
     return 1.40625f * nw4r::math::Atan2FIdx(temp.y, temp.x);
 }
 
-void CController::fn_801D5500(u32 arg1, u8 arg2) {
-    for (s32 i = 0; i < (s32)ARRAY_LENGTH(unk1354); i++) {
-        if (arg1 & (1 << i)) {
-            unk1354[i] = arg2;
+void CController::fn_801D5500(u32 button, u8 frames) {
+    for (s32 i = 0; i < BUTTON_COUNT; i++) {
+        if (button & (1 << i)) {
+            mButtonCoolFrames[i] = frames;
         }
     }
 }
 
-void CController::fn_801D55D8(u32 arg1, u8 arg2) {
-    for (s32 i = 0; i < (s32)ARRAY_LENGTH(unk1344); i++) {
-        if (arg1 & (1 << i)) {
-            unk1344[i] = arg2;
+void CController::fn_801D55D8(u32 button, u8 frames) {
+    for (s32 i = 0; i < BUTTON_COUNT; i++) {
+        if (button & (1 << i)) {
+            mButtonCoolTimer[i] = frames;
         }
     }
 }
@@ -351,24 +349,23 @@ s32 CController::fn_801D58A8(void) {
 }
 
 void CGCController::_0C(void) {
-    if (mStatus->err) {
+    if (mStatus->err != PAD_ERR_NONE) {
         return;
     }
-    u16 unk0Cbutton = mStatusPrev->button;
+
+    u16 prevButton = mStatusPrev->button;
     unk14 = 0;
-    if (mStatus->button & (mStatusPrev->button ^ mStatus->button)) {
-        unk12 = 0;
-    }
-    
 
-    if (unk0Cbutton != mStatus->button) {
-        return;
+    if (PADButtonDown(mStatusPrev->button, mStatus->button) != 0) {
+        mHeldTimer = 0;
     }
 
-    unk12++;
-    if ((unk12 == unk10) || (unk12 == (unk10 + unk11))) {
-        unk14 = mStatus->button;
-        unk12 = unk10;
+    if (prevButton == mStatus->button) {
+        mHeldTimer++;
+        if ((mHeldTimer == unk10) || (mHeldTimer == (unk10 + unk11))) {
+            unk14 = mStatus->button;
+            mHeldTimer = unk10;
+        }
     }
 }
 
@@ -391,7 +388,7 @@ CControllerManager::~CControllerManager(void) {
 }
 
 void CControllerManager::_10(CController::CreateFn createFn) {
-    for (s32 i = 0; i < (s32)ARRAY_LENGTH(mController); i++) {
+    for (s32 i = 0; i < WPAD_MAX_CONTROLLERS; i++) {
         mController[i] = createFn(i);
     }
     mNullController = new CNullController(-1);
@@ -401,15 +398,15 @@ void CControllerManager::_10(CController::CreateFn createFn) {
     mHeap = MEMCreateExpHeap(mHeapStart, heapSize);
     MEMInitAllocatorForExpHeap(&mAllocator, mHeap, 32);
 
-    for (s32 i = 0; i < (s32)ARRAY_LENGTH(mGCController); i++) {
+    for (s32 i = 0; i < PAD_MAX_CONTROLLERS; i++) {
         mGCController[i] = new CGCController(i);
-        mGCController[i]->setUnk08(&mPadStatus[i]);
-        mGCController[i]->setUnk0C(&mPadStatusPrev[i]);
+        mGCController[i]->setStatus(&mPadStatus[i]);
+        mGCController[i]->setStatusPrev(&mPadStatusPrev[i]);
     }
 }
 
 void CControllerManager::_08(void) {
-    for (s32 i = 0; i < (s32)ARRAY_LENGTH(mController); i++) {
+    for (s32 i = 0; i < WPAD_MAX_CONTROLLERS; i++) {
         delete mController[i];
     }
     delete mNullController;
@@ -422,7 +419,7 @@ void CControllerManager::_14(void) {
     WPADRegisterAllocator(CControllerManager::fn_801D5950, CControllerManager::fn_801D59B0);
     KPADInit();
 
-    for (s32 i = 0; i < (s32)ARRAY_LENGTH(mController); i++) {
+    for (s32 i = 0; i < WPAD_MAX_CONTROLLERS; i++) {
         mController[i]->_0C();
     }
 
@@ -443,10 +440,10 @@ void CControllerManager::_14(void) {
 }
 
 void CControllerManager::_18(void) {
-    for (s32 i = 0; i < (s32)ARRAY_LENGTH(mController); i++) {
+    for (s32 i = 0; i < WPAD_MAX_CONTROLLERS; i++) {
         mController[i]->_10();
     }
-    for (s32 i = 0; i < (s32)ARRAY_LENGTH(mGCController); i++) {
+    for (s32 i = 0; i < PAD_MAX_CONTROLLERS; i++) {
         mGCController[i]->_0C();
         mPadStatusPrev[i] = mPadStatus[i];
     }
@@ -454,7 +451,7 @@ void CControllerManager::_18(void) {
     PADRead(mPadStatus);
 
     u32 resetMask = 0;
-    for (s32 chan = 0; chan < (s32)ARRAY_LENGTH(mPadStatus); chan++) {
+    for (s32 chan = 0; chan < PAD_MAX_CONTROLLERS; chan++) {
         if (mPadStatus[chan].err == PAD_ERR_NO_CONTROLLER) {
             resetMask |= (PAD_CHAN0_BIT >> chan);
         }
@@ -466,10 +463,10 @@ void CControllerManager::_18(void) {
 }
 
 void CControllerManager::_1C(void) {
-    for (s32 i = 0; i < (s32)ARRAY_LENGTH(mController); i++) {
+    for (s32 i = 0; i < WPAD_MAX_CONTROLLERS; i++) {
         mController[i]->_14();
     }
-    for (s32 i = 0; i < (s32)ARRAY_LENGTH(mGCController); i++) {
+    for (s32 i = 0; i < PAD_MAX_CONTROLLERS; i++) {
         mGCController[i]->_10();
     }
 }

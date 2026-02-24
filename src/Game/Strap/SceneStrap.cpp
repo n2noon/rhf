@@ -107,8 +107,15 @@ void CSceneStrap::_28(void) {
         if (!mStrapAnim->getPlaying()) {
             mFadeOpacity = 0x100;
         }
-        else if ((mFrameCounter >= 90) && (controller->getUnk133C() & 0x1F1F)) {
-            mFadeOpacity = 0x100;
+        else if (mFrameCounter >= 90) {
+            u32 button = WPAD_BUTTON_LEFT  | WPAD_BUTTON_RIGHT |
+                         WPAD_BUTTON_DOWN  | WPAD_BUTTON_UP    |
+                         WPAD_BUTTON_A     | WPAD_BUTTON_B     |
+                         WPAD_BUTTON_1     | WPAD_BUTTON_2     |
+                         WPAD_BUTTON_PLUS  | WPAD_BUTTON_MINUS;
+            if (controller->checkTrig(button)) {
+                mFadeOpacity = 0x100;
+            }
         }
     }
 }

@@ -113,8 +113,8 @@ void CSceneInterview::_14(void) {
 
     gTickFlowManager->registerFlow<Interview::CMyFlow>();
 
-    gControllerManager->fn_801D5FF0(0)->fn_801D5500(0x800, 3);
-    gControllerManager->fn_801D5FF0(1)->fn_801D5500(0x800, 3);
+    gControllerManager->fn_801D5FF0(0)->fn_801D5500(WPAD_BUTTON_A, 3);
+    gControllerManager->fn_801D5FF0(1)->fn_801D5500(WPAD_BUTTON_A, 3);
 
     gLayoutManager->_20(1);
     gLayoutManager->_24(94, ""); // layout_common

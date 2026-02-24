@@ -79,7 +79,7 @@ void CSceneMetroman::_14(void) {
     gTickFlowManager->registerFlow<Metroman::CMyFlow>();
 
     CController *controller = gControllerManager->fn_801D5FF0(0);
-    controller->fn_801D5500(0x800, 3);
+    controller->fn_801D5500(WPAD_BUTTON_A, 3);
 
     void *metroman_00_brcadAddr = gFileManager->fn_801D4270(40, "./metroman_00.brcad");
     void *metroman_bg_brcadAddr = gFileManager->fn_801D4270(40, "./metroman_bg.brcad");
