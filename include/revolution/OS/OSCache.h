@@ -15,6 +15,10 @@ void DCFlushRangeNoSync(const void* buf, u32 len);
 void DCStoreRangeNoSync(const void* buf, u32 len);
 void DCZeroRange(const void* buf, u32 len);
 
+void ICInvalidateRange(const void *buf, u32 len);
+void ICFlashInvalidate(void);
+void ICEnable(void);
+
 void LCEnable(void);
 void LCDisable(void);
 void LCLoadBlocks(void* dst, const void* src, u32 blocks);
