@@ -11,5 +11,6 @@ orig/*/*
 /*.txt
 ctx.c
 compile_commands.json
+CONHLEE_STUFF/*
 .DS_Store
 .cache
