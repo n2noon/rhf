@@ -60,15 +60,17 @@ void CDebugPrint::fn_801EC674(s32 x, s32 y, s32 frames, const char *format, ...)
 // ptmfs are misplaced, may have something
 // to do with the pool data hack below
 // (needed to match fn_801EC850)
+#pragma push
 #pragma pool_data off
 
-struct MyVec2 {
-    f32 x, y;
+struct LineState {
+    f32 curLineLen;
+    f32 maxLineLen;
 
-    f32 max(void) const {
-        f32 _y = y;
-        f32 _x = x;
-        return _x < _y ? _y : _x;
+    void updateMaxLineLen(void) {
+        f32 _maxLineLen = maxLineLen;
+        f32 _curLineLen = curLineLen;
+        maxLineLen = _curLineLen < _maxLineLen ? _maxLineLen : _curLineLen;
     }
 };
 
@@ -81,40 +83,36 @@ Vec2i CDebugPrint::fn_801EC850(const char *format, std::va_list args) {
     
         nw4r::ut::CharStrmReader charStrmReader = font->GetCharStrmReader();
         charStrmReader.Set(buffer);
-    
-        
-        f32 fontHeight = font->GetHeight();
-        f32 dpFontSize = nw4r::db::DbgPrint::GetInstance()->GetFontSize();
-        
-        f32 fontSizeRatio = dpFontSize / fontHeight;
 
-        MyVec2 local_18 = { 0 };
-    
-        s32 lineFeed = font->GetLineFeed();
-        
-        f32 temp_f28 = fontSizeRatio * lineFeed;
-    
-        u16 lastChar = charStrmReader.Next();
-    
+        f32 fontScale = nw4r::db::DbgPrint::GetInstance()->GetFontSize() / font->GetHeight();
+
+        LineState lineState = { 0 };
+        f32 lineHeight = fontScale * font->GetLineFeed();
+
+        u16 curChar = charStrmReader.Next();
         while ((static_cast<const char *>(charStrmReader.GetCurrentPos()) - buffer) <= charCount) {
-            if (lastChar == '\n') {
-                local_18.y = local_18.max();
-                local_18.x = 0.0f;
-    
-                temp_f28 += fontSizeRatio * font->GetLineFeed();
+            if (curChar == '\n') {
+                lineState.updateMaxLineLen();
+                lineState.curLineLen = 0.0f;
+
+                lineHeight += fontScale * font->GetLineFeed();
             }
             else {
-                local_18.x += fontSizeRatio * font->GetCharWidth(lastChar);
+                lineState.curLineLen += fontScale * font->GetCharWidth(curChar);
             }
     
-            lastChar = charStrmReader.Next();
+            curChar = charStrmReader.Next();
         }
 
-        local_18.y = local_18.max();
-        return (Vec2i) { local_18.y, temp_f28 };
-    }
-    return (Vec2i) { 0, 0 };
+        lineState.updateMaxLineLen();
 
+        return (Vec2i) { lineState.maxLineLen, lineHeight };
+    }
+    else {
+        return (Vec2i) { 0, 0 };
+    }
 }
+
+#pragma pop
 
 void CDebugPrint::_18(void) {}

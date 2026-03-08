@@ -2,8 +2,8 @@
 #define GAMEUTIL_VECTOR_HPP
 
 /*
-    NOTE: this vector class is utilised solely by DebugPrint.
-*/
+ * NOTE: this vector class is utilised solely by DebugPrint.
+ */
 
 #include <revolution/types.h>
 
