@@ -216,6 +216,12 @@ public:
             (PADButtonDown(mStatusPrev->button, mStatus->button) & button);
     }
 
+    bool checkButtonUp(u32 button) {
+        return
+            (mStatus->err == PAD_ERR_NONE) &&
+            (PADButtonUp(mStatusPrev->button, mStatus->button) & button);
+    }
+
 private:
     s32 mMyChannel;
     PADStatus *mStatus;

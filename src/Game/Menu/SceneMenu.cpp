@@ -117,8 +117,7 @@ void CSceneMenu::_28(void) {
     CController *controller = gControllerManager->fn_801D5FF0(0);
     CGCController *gcController = gControllerManager->fn_801D6000(0);
 
-    // TODO: regswap in checkButtonDown
-    if (controller->checkRelease(WPAD_BUTTON_A) || gcController->checkButtonDown(PAD_BUTTON_A)) {
+    if (controller->checkRelease(WPAD_BUTTON_A) || gcController->checkButtonUp(PAD_BUTTON_A)) {
         const TickFlowCode *tickFlowCode = lbl_801F8460[lbl_80320143].tickFlowCode;
         if (tickFlowCode != NULL) {
             if (tickFlowCode == lbl_80320FE0) {
