@@ -6,7 +6,30 @@
 
 #include "Mem.hpp"
 
-class CVarParam;
+#include "List.hpp"
+
+class CVarParam : public CList {
+public:
+    CVarParam();
+    ~CVarParam();
+
+    void fn_801ECEC4(s32 x, s32 y);
+
+private:
+    char mTitle[0x20];
+    u32 unk2C;
+    u32 mType;
+    u64 &mUlongVal;
+    u32 &mUintVal;
+    u16 &mUshortVal;
+    u8 &mUcharVal;
+    s64 &mLongVal;
+    s32 &mIntVal;
+    s16 &mShortVal;
+    s8 &mCharVal;
+    f32 &mFloatVal;
+    u8 unk58[0xa8 - 0x58];
+};
 
 class CVarParamManager : public TSingleton<CVarParamManager> {
 public:
